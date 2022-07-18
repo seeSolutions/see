@@ -6,7 +6,7 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
 {
     #region Fields
 
-    private ISeeDataProvider _dataProvider;
+    private readonly ISeeDataProvider _dataProvider;
 
     #endregion
 

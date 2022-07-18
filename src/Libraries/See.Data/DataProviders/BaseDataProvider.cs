@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
+using LinqToDB.Tools;
 using Microsoft.Extensions.Configuration;
 using See.Core;
 
@@ -16,13 +17,27 @@ public abstract class BaseDataProvider
 
     #region Utils
 
+    /// <summary>
+    /// Gets a connection to the database for a current data provider
+    /// </summary>
+    /// <param name="connectionString">Connection string</param>
+    /// <returns>Connection to a database</returns>
     protected abstract DbConnection GetInternalDbConnection(string connectionString);
 
+    /// <summary>
+    /// Creates the database connection
+    /// </summary>
+    /// <returns>Database connection</returns>
     protected virtual DataConnection CreateDataConnection()
     {
         return CreateDataConnection(LinqToDbDataProvider);
     }
 
+    /// <summary>
+    /// Creates the database connection
+    /// </summary>
+    /// <param name="dataProvider">Data provider</param>
+    /// <returns>Database connection</returns>
     protected virtual DataConnection CreateDataConnection(IDataProvider dataProvider)
     {
         if (dataProvider == null)
@@ -34,6 +49,11 @@ public abstract class BaseDataProvider
         return dataConnection;
     }
 
+    /// <summary>
+    /// Creates a connection to a database
+    /// </summary>
+    /// <param name="connectionString">Connection string</param>
+    /// <returns>Connection to a database</returns>
     protected virtual DbConnection CreateDbConnection(string? connectionString = null)
     {
         var dbConnection =
@@ -41,66 +61,204 @@ public abstract class BaseDataProvider
         return dbConnection;
     }
 
+    /// <summary>
+    /// Creates database command instance using provided command text and parameters.
+    /// </summary>
+    /// <param name="sql">Command text</param>
+    /// <param name="dataParameters">Command parameters</param>
+    protected virtual CommandInfo CreateDbCommand(string sql, DataParameter[] dataParameters)
+    {
+        if (dataParameters is null)
+            throw new ArgumentNullException(nameof(dataParameters));
+
+        var dataConnection = CreateDataConnection(LinqToDbDataProvider);
+
+        return new CommandInfo(dataConnection, sql, dataParameters);
+    }
+
     #endregion
 
     #region Methods
 
-    public async Task<TEntity> InsertEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
+    /// <summary>
+    /// Returns queryable source for specified mapping class for current connection,
+    /// mapped to database table or view.
+    /// </summary>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>Queryable source</returns>
+    public virtual IQueryable<TEntity> GetTable<TEntity>() where TEntity : BaseEntity
     {
-        await using var dataContext= CreateDataConnection();
+        return new DataContext(LinqToDbDataProvider, GetConnectString()).GetTable<TEntity>();
+    }
+
+    /// <summary>
+    /// Inserts record into table. Returns inserted entity with identity
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the inserted entity
+    /// </returns>
+    public virtual async Task<TEntity> InsertEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
+    {
+        await using var dataContext = CreateDataConnection();
         entity.Id = await dataContext.InsertWithInt32IdentityAsync(entity);
         return entity;
     }
-    
 
+    /// <summary>
+    /// Inserts record into table. Returns inserted entity with identity
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>Inserted entity</returns>
     public TEntity InsertEntity<TEntity>(TEntity entity) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        using var dataContext = CreateDataConnection();
+        entity.Id = dataContext.InsertWithInt32Identity(entity);
+        return entity;
     }
 
-    public Task UpdateEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
+    /// <summary>
+    /// Updates record in table, using values from entity parameter.
+    /// Record to update identified by match on primary key value from obj value.
+    /// </summary>
+    /// <param name="entity">Entity with data to update</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task UpdateEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        await using var dataContext = CreateDataConnection();
+        await dataContext.UpdateAsync(entity);
     }
 
-    public Task UpdateEntitiesAsync<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
+    /// <summary>
+    /// Updates records in table, using values from entity parameter.
+    /// Records to update are identified by match on primary key value from obj value.
+    /// </summary>
+    /// <param name="entities">Entities with data to update</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task UpdateEntitiesAsync<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        foreach (var entity in entities)
+            await UpdateEntityAsync(entity);
     }
 
-    public Task DeleteEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
+    /// <summary>
+    /// Deletes record in table. Record to delete identified
+    /// by match on primary key value from obj value.
+    /// </summary>
+    /// <param name="entity">Entity for delete operation</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task DeleteEntityAsync<TEntity>(TEntity entity) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        await using var dataContext = CreateDataConnection();
+        await dataContext.DeleteAsync(entity);
     }
 
-    public Task BulkDeleteEntitiesAsync<TEntity>(IList<TEntity> entities) where TEntity : BaseEntity
+    /// <summary>
+    /// Performs delete records in a table
+    /// </summary>
+    /// <param name="entities">Entities for delete operation</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task BulkDeleteEntitiesAsync<TEntity>(IList<TEntity> entities) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        await using var dataContext = CreateDataConnection();
+        if (entities.All(entity => entity.Id == 0))
+        {
+            foreach (var entity in entities)
+                await dataContext.DeleteAsync(entity);
+        }
+        else
+        {
+            await dataContext.GetTable<TEntity>()
+                .Where(e => e.Id.In(entities.Select(x => x.Id)))
+                .DeleteAsync();
+        }
     }
 
-    public Task<int> BulkDeleteEntitiesAsync<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : BaseEntity
+    /// <summary>
+    /// Performs delete records in a table by a condition
+    /// </summary>
+    /// <param name="predicate">A function to test each element for a condition.</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the number of deleted records
+    /// </returns>
+    public virtual async Task<int> BulkDeleteEntitiesAsync<TEntity>(Expression<Func<TEntity, bool>> predicate)
+        where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        await using var dataContext = CreateDataConnection();
+        return await dataContext.GetTable<TEntity>()
+            .Where(predicate)
+            .DeleteAsync();
     }
 
-    public Task BulkInsertEntitiesAsync<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
+    /// <summary>
+    /// Performs bulk insert operation for entity collection.
+    /// </summary>
+    /// <param name="entities">Entities for insert operation</param>
+    /// <typeparam name="TEntity">Entity type</typeparam>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public virtual async Task BulkInsertEntitiesAsync<TEntity>(IEnumerable<TEntity> entities) where TEntity : BaseEntity
     {
-        throw new NotImplementedException();
+        await using var dataContext = CreateDataConnection(LinqToDbDataProvider);
+        await dataContext.BulkCopyAsync(new BulkCopyOptions(), entities.RetrieveIdentity(dataContext));
     }
 
-    public IQueryable<TEntity> GetTable<TEntity>() where TEntity : BaseEntity
+    /// <summary>
+    /// Executes command asynchronously and returns number of affected records
+    /// </summary>
+    /// <param name="sql">Command text</param>
+    /// <param name="dataParameters">Command parameters</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the number of records, affected by command execution.
+    /// </returns>
+    public virtual async Task<int> ExecuteNonQueryAsync(string sql, params DataParameter[] dataParameters)
     {
-        throw new NotImplementedException();
+        var command = CreateDbCommand(sql, dataParameters);
+
+        return await command.ExecuteAsync();
     }
 
-    public Task<int> ExecuteNonQueryAsync(string sql, params DataParameter[] dataParameters)
+    /// <summary>
+    /// Executes command using System.Data.CommandType.StoredProcedure command type and
+    /// returns results as collection of values of specified type
+    /// </summary>
+    /// <typeparam name="T">Result record type</typeparam>
+    /// <param name="procedureName">Procedure name</param>
+    /// <param name="parameters">Command parameters</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the returns collection of query result records
+    /// </returns>
+    public virtual Task<IList<T>> QueryProcAsync<T>(string procedureName, params DataParameter[] parameters)
     {
-        throw new NotImplementedException();
+        var command = CreateDbCommand(procedureName, parameters);
+        var rez = command.QueryProc<T>()?.ToList();
+        return Task.FromResult<IList<T>>(rez ?? new List<T>());
     }
 
-    public Task<IList<T>> QueryAsync<T>(string sql, params DataParameter[] parameters)
+    /// <summary>
+    /// Executes SQL command and returns results as collection of values of specified type
+    /// </summary>
+    /// <typeparam name="T">Type of result items</typeparam>
+    /// <param name="sql">SQL command text</param>
+    /// <param name="parameters">Parameters to execute the SQL command</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the collection of values of specified type
+    /// </returns>
+    public virtual Task<IList<T>> QueryAsync<T>(string sql, params DataParameter[] parameters)
     {
-        throw new NotImplementedException();
+        using var dataContext = CreateDataConnection();
+        return Task.FromResult<IList<T>>(dataContext.Query<T>(sql, parameters)?.ToList() ?? new List<T>());
     }
 
     #endregion
