@@ -6,9 +6,17 @@ public interface IRepository<TEntity> where TEntity : BaseEntity
 {
     #region Methods
 
-    Task<TEntity> GetByIdAsync(int? id);
+    /// <summary>
+    /// Get the entity entry
+    /// </summary>
+    /// <param name="id">Entity entry identifier</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the entity entry
+    /// </returns>
+    Task<TEntity?> GetByIdAsync(int? id);
 
-    Task<IList<TEntity>> GetByIdsAsync(IList<int> ids);
+    Task<IList<TEntity>> GetByIdsAsync(IList<int>? ids);
 
     /// <summary>
     /// Insert the entity entry
