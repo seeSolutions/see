@@ -16,6 +16,28 @@ public class MemberController : ControllerBase
     }
 
     /// <summary>
+    /// Get all members
+    /// </summary>
+    /// <returns>Members</returns>
+    public async Task<IActionResult> AllMembers()
+    {
+        var members = await _memberRepository.GetAllAsync((Func<IQueryable<Member>, IQueryable<Member>>?)null);
+        
+        return Ok(members);
+    }
+
+    /// <summary>
+    /// Get all members
+    /// </summary>
+    /// <returns>Members</returns>
+    public IActionResult AllMembers2()
+    {
+        var members = _memberRepository.GetAll();
+
+        return Ok(members);
+    }
+
+    /// <summary>
     /// Insert a new member
     /// </summary>
     /// <returns>The new inserted member</returns>
@@ -53,7 +75,7 @@ public class MemberController : ControllerBase
     public async Task<IActionResult> List([FromQuery] IList<int> ids)
     {
         var members = await _memberRepository.GetByIdsAsync(ids);
-        
+
         return Ok(members);
     }
 }
