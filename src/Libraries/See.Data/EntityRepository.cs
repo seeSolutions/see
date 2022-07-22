@@ -1,5 +1,6 @@
 using LinqToDB;
 using See.Core;
+using See.Data.Extensions;
 
 namespace See.Data;
 
@@ -44,7 +45,7 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     /// <param name="ids">Entity entry identifiers</param>
     /// <returns>
     /// A task that represents the asynchronous operation
-    /// The task contains the entity entries
+    /// The task result contains the entity entries
     /// </returns>
     public virtual async Task<IList<TEntity>> GetByIdsAsync(IList<int>? ids)
     {
@@ -60,7 +61,7 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     /// <param name="func">Func to select entries</param>
     /// <returns>
     /// A task that represents the asynchronous operation
-    /// The task contains the entity entries
+    /// The task result contains the entity entries
     /// </returns>
     public virtual async Task<IList<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, IQueryable<TEntity>>? func = null)
     {
@@ -79,9 +80,10 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     /// <param name="func">Func to select entries</param>
     /// <returns>
     /// A task that represents the asynchronous operation
-    /// The task contains the entity entries
+    /// The task result contains the entity entries
     /// </returns>
-    public virtual async Task<IList<TEntity>> GetAllAsync(Func<IQueryable<TEntity>, Task<IQueryable<TEntity>>>? func = null)
+    public virtual async Task<IList<TEntity>> GetAllAsync(
+        Func<IQueryable<TEntity>, Task<IQueryable<TEntity>>>? func = null)
     {
         var query = Table;
         if (func != null)
@@ -106,6 +108,56 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
         }
 
         return query.ToList();
+    }
+
+    /// <summary>
+    /// Get all entity entries
+    /// </summary>
+    /// <param name="func">Func to select entries</param>
+    /// <param name="pageIndex">Page index</param>
+    /// <param name="pageSize">Page size</param>
+    /// <param name="getOnlyTotalCount">Whether to get only the total number of entries without actually loading data</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the paged list of entity entries 
+    /// </returns>
+    public virtual async Task<IPagedList<TEntity>> GetAllPagedAsync(
+        Func<IQueryable<TEntity>, IQueryable<TEntity>>? func = null,
+        int pageIndex = 0, int pageSize = Int32.MaxValue,
+        bool getOnlyTotalCount = false)
+    {
+        var query = Table;
+        if (func != null)
+        {
+            query = func(query);
+        }
+
+        return await query.ToPagedListAsync(pageIndex, pageSize, getOnlyTotalCount);
+    }
+
+    /// <summary>
+    /// Get all entity entries
+    /// </summary>
+    /// <param name="func">Func to select entries</param>
+    /// <param name="pageIndex">Page index</param>
+    /// <param name="pageSize">Page size</param>
+    /// <param name="getOnlyTotalCount">Whether to get only the total number of entries without actually loading data</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the paged list of entity entries 
+    /// </returns>
+    public virtual async Task<IPagedList<TEntity>> GetAllPagedAsync(
+        Func<IQueryable<TEntity>, Task<IQueryable<TEntity>>>? func = null,
+        int pageIndex = 0, int pageSize = Int32.MaxValue,
+        bool getOnlyTotalCount = false)
+    {
+        var query = Table;
+        if (func != null)
+        {
+            query = await func(query);
+        }
+
+        return await query.ToPagedListAsync(pageIndex, pageSize, getOnlyTotalCount);
     }
 
     /// <summary>

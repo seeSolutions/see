@@ -21,8 +21,8 @@ public class MemberController : ControllerBase
     /// <returns>Members</returns>
     public async Task<IActionResult> AllMembers()
     {
-        var members = await _memberRepository.GetAllAsync((Func<IQueryable<Member>, IQueryable<Member>>?)null);
-        
+        var members = await _memberRepository.GetAllAsync(query => query);
+
         return Ok(members);
     }
 
@@ -33,6 +33,19 @@ public class MemberController : ControllerBase
     public IActionResult AllMembers2()
     {
         var members = _memberRepository.GetAll();
+
+        return Ok(members);
+    }
+
+    /// <summary>
+    /// Get paged list of members
+    /// </summary>
+    /// <param name="pageIndex">Page index</param>
+    /// <param name="pageSize">Page size</param> 
+    /// <returns>Paged list of members</returns>
+    public async Task<IActionResult> Members(int pageIndex, int pageSize = 10)
+    {
+        var members = await _memberRepository.GetAllPagedAsync(query => query, pageIndex, pageSize);
 
         return Ok(members);
     }
