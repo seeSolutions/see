@@ -1,3 +1,4 @@
+using System.Transactions;
 using LinqToDB;
 using See.Core;
 using See.Data.Extensions;
@@ -171,6 +172,21 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
             throw new ArgumentNullException(nameof(entity));
 
         await _dataProvider.InsertEntityAsync(entity);
+    }
+
+    /// <summary>
+    /// Insert entity entries
+    /// </summary>
+    /// <param name="entities">Entity entries</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public async Task InsertAsync(IList<TEntity> entities)
+    {
+        if (entities == null)
+            throw new ArgumentNullException(nameof(entities));
+
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        await _dataProvider.BulkInsertEntitiesAsync(entities);
+        transaction.Complete();
     }
 
     #endregion

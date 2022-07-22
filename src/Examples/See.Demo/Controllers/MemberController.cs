@@ -67,6 +67,31 @@ public class MemberController : ControllerBase
     }
 
     /// <summary>
+    /// Batch insert members
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IActionResult> BatchInsert()
+    {
+        var memberList = new List<Member>();
+
+        var member1 = new Member()
+        {
+            Name = "Success Go 1"
+        };
+        memberList.Add(member1);
+
+        var member2 = new Member()
+        {
+            Name = "Success Go 2"
+        };
+        memberList.Add(member2);
+
+        await _memberRepository.InsertAsync(memberList);
+
+        return Ok();
+    }
+
+    /// <summary>
     /// View member detail by id
     /// </summary>
     /// <param name="id">Member id</param>
