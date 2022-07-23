@@ -124,7 +124,7 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     /// </returns>
     public virtual async Task<IPagedList<TEntity>> GetAllPagedAsync(
         Func<IQueryable<TEntity>, IQueryable<TEntity>>? func = null,
-        int pageIndex = 0, int pageSize = Int32.MaxValue,
+        int pageIndex = 0, int pageSize = int.MaxValue,
         bool getOnlyTotalCount = false)
     {
         var query = Table;
@@ -187,6 +187,35 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
         using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
         await _dataProvider.BulkInsertEntitiesAsync(entities);
         transaction.Complete();
+    }
+
+    /// <summary>
+    /// Update the entity entry
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public async Task UpdateAsync(TEntity entity)
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+        
+        await _dataProvider.UpdateEntityAsync(entity);
+    }
+
+    /// <summary>
+    /// Update entity entries
+    /// </summary>
+    /// <param name="entities">Entity entries</param>
+    /// <returns>A task that represents the asynchronous operations</returns>
+    public async Task UpdateAsync(IList<TEntity> entities)
+    {
+        if (entities == null)
+            throw new ArgumentNullException(nameof(entities));
+        
+        if (entities.Count==0)
+            return;
+
+        await _dataProvider.UpdateEntitiesAsync(entities);
     }
 
     #endregion

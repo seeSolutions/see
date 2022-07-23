@@ -1,4 +1,5 @@
 using Autofac.Extensions.DependencyInjection;
+using See.Demo.Extensions;
 using See.Framework.Infrastructure.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,7 @@ builder.Configuration.AddEnvironmentVariables();
 
 // Add services to the application and configure service provider
 builder.Services.ConfigureApplicationServices(builder);
+builder.Services.AddMappingSchema();
 
 var app = builder.Build();
 

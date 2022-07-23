@@ -3,6 +3,7 @@ using System.Linq.Expressions;
 using LinqToDB;
 using LinqToDB.Data;
 using LinqToDB.DataProvider;
+using LinqToDB.Mapping;
 using LinqToDB.Tools;
 using Microsoft.Extensions.Configuration;
 using See.Core;
@@ -45,7 +46,8 @@ public abstract class BaseDataProvider
             throw new ArgumentNullException(nameof(dataProvider));
         }
 
-        var dataConnection = new DataConnection(dataProvider, CreateDbConnection());
+        var dataConnection = new DataConnection(dataProvider, CreateDbConnection(), MappingSchema);
+
         return dataConnection;
     }
 
@@ -58,6 +60,7 @@ public abstract class BaseDataProvider
     {
         var dbConnection =
             GetInternalDbConnection(!string.IsNullOrEmpty(connectionString) ? connectionString : GetConnectString());
+
         return dbConnection;
     }
 
@@ -274,6 +277,11 @@ public abstract class BaseDataProvider
     /// Configuration
     /// </summary>
     protected abstract IConfiguration Configuration { get; }
+
+    /// <summary>
+    /// MappingSchema
+    /// </summary>
+    protected abstract MappingSchema MappingSchema { get; }
 
     /// <summary>
     /// Get database connect string
