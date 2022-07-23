@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using System.Transactions;
 using LinqToDB;
 using See.Core;
@@ -198,7 +199,7 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
-        
+
         await _dataProvider.UpdateEntityAsync(entity);
     }
 
@@ -211,11 +212,59 @@ public class EntityRepository<TEntity> : IRepository<TEntity> where TEntity : Ba
     {
         if (entities == null)
             throw new ArgumentNullException(nameof(entities));
-        
-        if (entities.Count==0)
+
+        if (entities.Count == 0)
             return;
 
         await _dataProvider.UpdateEntitiesAsync(entities);
+    }
+
+    /// <summary>
+    /// Delete the entity entry
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public async Task DeleteAsync(TEntity entity)
+    {
+        if (entity == null)
+            throw new ArgumentNullException(nameof(entity));
+
+        await _dataProvider.DeleteEntityAsync(entity);
+    }
+
+    /// <summary>
+    /// Delete entity entries
+    /// </summary>
+    /// <param name="entities">Entity entries</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    public async Task DeleteAsync(IList<TEntity> entities)
+    {
+        if (entities == null)
+            throw new ArgumentNullException(nameof(entities));
+
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        await _dataProvider.BulkDeleteEntitiesAsync(entities);
+        transaction.Complete();
+    }
+
+    /// <summary>
+    /// Delete entity entries by the passed predicate
+    /// </summary>
+    /// <param name="predicate">A function to test each element for a condition</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the number of deleted records
+    /// </returns>
+    public async Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate)
+    {
+        if (predicate == null)
+            throw new ArgumentNullException(nameof(predicate));
+
+        using var transaction = new TransactionScope(TransactionScopeAsyncFlowOption.Enabled);
+        var countDeleteRecords = await _dataProvider.BulkDeleteEntitiesAsync(predicate);
+        transaction.Complete();
+
+        return countDeleteRecords;
     }
 
     #endregion

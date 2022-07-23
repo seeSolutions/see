@@ -135,4 +135,47 @@ public class MemberController : ControllerBase
 
         return Ok(members);
     }
+
+    /// <summary>
+    /// Delete a member
+    /// </summary>
+    /// <param name="id">Member id</param>
+    /// <returns></returns>
+    public async Task<IActionResult> DeleteOne(int id)
+    {
+        var member = await _memberRepository.GetByIdAsync(id);
+        if (member == null)
+            return NotFound();
+
+        await _memberRepository.DeleteAsync(member);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete multiple members
+    /// </summary>
+    /// <param name="ids">Member ids</param>
+    /// <returns></returns>
+    public async Task<IActionResult> DeleteMulti([FromQuery] IList<int> ids)
+    {
+        var members = await _memberRepository.GetByIdsAsync(ids);
+        if (members.Count == 0)
+            return NotFound();
+
+        await _memberRepository.DeleteAsync(members);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Delete all members
+    /// </summary>
+    /// <returns></returns>
+    public async Task<IActionResult> DeleteAll()
+    {
+        var count = await _memberRepository.DeleteAsync(m => true);
+
+        return Ok(count);
+    }
 }

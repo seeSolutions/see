@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using See.Core;
 
 namespace See.Data;
@@ -108,6 +109,30 @@ public interface IRepository<TEntity> where TEntity : BaseEntity
     /// <param name="entities">Entity entries</param>
     /// <returns>A task that represents the asynchronous operations</returns>
     Task UpdateAsync(IList<TEntity> entities);
+
+    /// <summary>
+    /// Delete the entity entry
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task DeleteAsync(TEntity entity);
+
+    /// <summary>
+    /// Delete entity entries
+    /// </summary>
+    /// <param name="entities">Entity entries</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task DeleteAsync(IList<TEntity> entities);
+
+    /// <summary>
+    /// Delete entity entries by the passed predicate
+    /// </summary>
+    /// <param name="predicate">A function to test each element for a condition</param>
+    /// <returns>
+    /// A task that represents the asynchronous operation
+    /// The task result contains the number of deleted records
+    /// </returns>
+    Task<int> DeleteAsync(Expression<Func<TEntity, bool>> predicate);
 
     #endregion
 }
