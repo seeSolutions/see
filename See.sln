@@ -6,7 +6,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "See.Demo", "src\Examples\Se
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "src\Libraries", "{3B93DB6D-F5D0-44E1-81FD-EC652C8FCA62}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "See.Core", "src\Libraries\See.Core\See.Core.csproj", "{3B6F9825-69AC-4319-86F5-BB27D8E65B3E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "See", "src\Libraries\See\See.csproj", "{3B6F9825-69AC-4319-86F5-BB27D8E65B3E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "See.Data", "src\Libraries\See.Data\See.Data.csproj", "{B4EDBF06-DB41-45CF-85DF-E65D794FF3B9}"
 EndProject

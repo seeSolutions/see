@@ -1,7 +1,7 @@
 using System.Linq.Expressions;
 using System.Transactions;
 using LinqToDB;
-using See.Core;
+using See;
 using See.Data.Extensions;
 
 namespace See.Data;

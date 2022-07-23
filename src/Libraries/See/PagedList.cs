@@ -1,4 +1,4 @@
-namespace See.Core;
+namespace See;
 
 /// <summary>
 /// Paged list.

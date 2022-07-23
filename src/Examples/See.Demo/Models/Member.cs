@@ -1,4 +1,4 @@
-using See.Core;
+using See;
 
 namespace See.Demo.Models;
 

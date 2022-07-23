@@ -1,4 +1,4 @@
-namespace See.Core;
+namespace See;
 
 public abstract partial class BaseEntity
 {

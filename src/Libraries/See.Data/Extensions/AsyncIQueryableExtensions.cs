@@ -1,5 +1,5 @@
 using LinqToDB;
-using See.Core;
+using See;
 
 namespace See.Data.Extensions;
 

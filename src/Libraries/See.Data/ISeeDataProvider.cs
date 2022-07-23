@@ -1,6 +1,6 @@
 using System.Linq.Expressions;
 using LinqToDB.Data;
-using See.Core;
+using See;
 
 namespace See.Data;
 

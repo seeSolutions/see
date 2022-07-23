@@ -6,7 +6,7 @@ using LinqToDB.DataProvider;
 using LinqToDB.Mapping;
 using LinqToDB.Tools;
 using Microsoft.Extensions.Configuration;
-using See.Core;
+using See;
 
 namespace See.Data.DataProviders;
 

@@ -1,4 +1,4 @@
-namespace See.Core;
+namespace See;
 
 /// <summary>
 /// Represents a collection of objects that can be individually accessed by index, plus pagination information.  
