@@ -92,6 +92,25 @@ public class MemberController : ControllerBase
     }
 
     /// <summary>
+    /// Update a member
+    /// </summary>
+    /// <param name="id">Member id</param>
+    /// <param name="name">Member name</param>
+    /// <returns></returns>
+    public async Task<IActionResult> Update(int id, string name)
+    {
+        var member = await _memberRepository.GetByIdAsync(id);
+
+        if (member == null)
+            return NotFound();
+
+        member.Name = name;
+        await _memberRepository.UpdateAsync(member);
+        
+        return Ok(member);
+    }
+
+    /// <summary>
     /// View member detail by id
     /// </summary>
     /// <param name="id">Member id</param>

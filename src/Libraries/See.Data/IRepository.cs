@@ -95,5 +95,19 @@ public interface IRepository<TEntity> where TEntity : BaseEntity
     /// <returns>A task that represents the asynchronous operation</returns>
     Task InsertAsync(IList<TEntity> entities);
 
+    /// <summary>
+    /// Update the entity entry
+    /// </summary>
+    /// <param name="entity">Entity entry</param>
+    /// <returns>A task that represents the asynchronous operation</returns>
+    Task UpdateAsync(TEntity entity);
+
+    /// <summary>
+    /// Update entity entries
+    /// </summary>
+    /// <param name="entities">Entity entries</param>
+    /// <returns>A task that represents the asynchronous operations</returns>
+    Task UpdateAsync(IList<TEntity> entities);
+
     #endregion
 }

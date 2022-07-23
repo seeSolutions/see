@@ -2,6 +2,7 @@ using System.Data.Common;
 using LinqToDB;
 using LinqToDB.DataProvider;
 using LinqToDB.DataProvider.MySql;
+using LinqToDB.Mapping;
 using Microsoft.Extensions.Configuration;
 using MySqlConnector;
 
@@ -11,9 +12,10 @@ public class MySqlDataProvider : BaseDataProvider, ISeeDataProvider
 {
     #region Ctor
 
-    public MySqlDataProvider(IConfiguration configuration)
+    public MySqlDataProvider(IConfiguration configuration, MappingSchema mappingSchema)
     {
         Configuration = configuration;
+        MappingSchema = mappingSchema;
     }
 
     #endregion
@@ -42,6 +44,11 @@ public class MySqlDataProvider : BaseDataProvider, ISeeDataProvider
     /// Configuration
     /// </summary>
     protected override IConfiguration Configuration { get; }
+
+    /// <summary>
+    /// MappingSchema
+    /// </summary>
+    protected override MappingSchema MappingSchema { get; }
 
     #endregion
 }
